@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gaby.sms.mapper.dao.StudentDao">
+
+    <select id="list" resultType="com.gaby.sms.model.student.list.Item" parameterType="map">
+       SELECT
+            uai.id,
+            uai.account,
+            uai.username,
+            uai.nickname,
+            uai.email,
+            uai.gender,
+            uai.create_time,
+            uai.`status`
+        FROM
+            user_account_info uai
+        WHERE
+            uai.`status` IN ('00A','00B')
+            <if test="request.username!=null and request.username!=''">
+                AND uai.username LIKE CONCAT('%',REPLACE(trim(#{request.username}),' ','%'),'%')
+            </if>
+            <if test="request.nickname!=null and request.nickname!=''">
+                AND uai.nickname LIKE CONCAT('%',REPLACE(trim(#{request.nickname}),' ','%'),'%')
+            </if>
+            <if test="request.keyword!=null and request.keyword!=''">
+                AND (uai.nickname LIKE CONCAT('%',REPLACE(trim(#{request.keyword}),' ','%'),'%') or (uai.username LIKE CONCAT('%',REPLACE(trim(#{request.keyword}),' ','%'),'%')))
+            </if>
+            <if test="request.status!=null and request.status!=''">
+                AND uai.`status`=#{request.status}
+            </if>
+        ORDER BY
+            uai.create_time DESC
+    </select>
+    <select id="info" resultType="com.gaby.sms.model.student.info.Response">
+        SELECT
+            uai.account,
+            uai.username,
+            uai.nickname,
+            uai.email,
+            uai.gender,
+            uai.pwd
+        FROM
+            user_account_info uai
+        WHERE
+            uai.`status`='00A'
+            AND uai.id=#{id}
+    </select>
+</mapper>

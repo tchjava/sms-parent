@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gaby.sms.mapper.dao.PermissionDao">
+
+    <select id="list" resultType="com.gaby.sms.model.permission.list.Item" parameterType="map">
+       SELECT
+            pi.id,
+            pi.`name`,
+            pi.url,
+            pi.type,
+            pi.percode,
+            pi.parent_id,
+            pi.sort
+        FROM
+            permission_info pi
+        WHERE
+            pi.`status` = '00A'
+    </select>
+    <select id="pm_list" resultType="com.gaby.sms.model.permission.pm.list.Item">
+        SELECT
+            pi.id,
+            pi.`name`
+        FROM
+            permission_info pi
+        WHERE
+            pi.`status`='00A'
+            and pi.type=0
+    </select>
+    <select id="queryPermissionExceptSelf" resultType="com.gaby.mybatis.auto.stu.entity.PermissionInfo">
+        SELECT
+            pi.id
+        FROM
+            permission_info pi
+        WHERE
+            pi.`status` = '00A'
+            AND ( pi.`name` = #{request.name} OR pi.percode = #{request.percode} OR pi.sort = #{request.sort} )
+            AND pi.id !=#{request.id}
+    </select>
+    <select id="selectListByPermissionId" resultType="java.lang.Long">
+        SELECT
+            pi.id
+        FROM
+            permission_info pi
+        WHERE
+            pi.`status` = '00A'
+            AND pi.parent_id=#{id}
+    </select>
+    <select id="staff" resultType="java.lang.Long">
+        SELECT
+            spr.pi_id
+        FROM
+            staff_permission_rela spr
+        WHERE
+            spr.`status` = '00A'
+            AND spr.staff_type_id=#{roleId}
+    </select>
+    <select id="selectMenuList" resultType="com.gaby.sms.system.MenuInfo">
+        SELECT
+            pi.`name`,
+            pi.url,
+            pi.icon,
+            pi.parent_id,
+            pi.id
+        FROM
+            permission_info pi
+        WHERE
+            pi.`status` = '00A'
+            AND pi.type = 0
+            AND pi.id IN (
+            SELECT
+                spr.pi_id
+            FROM
+                staff_permission_rela spr
+            WHERE
+                spr.staff_type_id IN (
+                SELECT
+                    usi.type
+                FROM
+                    user_staff_info usi
+                WHERE
+                    usi.user_id = ( SELECT uai.id FROM user_account_info uai WHERE uai.`status` = '00A' AND uai.account = #{account} )
+                    AND usi.`status` = '00A'
+                )
+                AND spr.`status` = '00A'
+            )
+    </select>
+    <select id="selectPermissionList" resultType="string">
+        SELECT
+            pi.percode
+        FROM
+            permission_info pi
+        WHERE
+            pi.`status` = '00A'
+            AND pi.type = 1
+            AND pi.id IN (
+            SELECT
+                spr.pi_id
+            FROM
+                staff_permission_rela spr
+            WHERE
+                spr.staff_type_id IN (
+                SELECT
+                    usi.type
+                FROM
+                    user_staff_info usi
+                WHERE
+                    usi.user_id = ( SELECT uai.id FROM user_account_info uai WHERE uai.`status` = '00A' AND uai.account = #{account} )
+                    AND usi.`status` = '00A'
+                )
+                AND spr.`status` = '00A'
+            )
+    </select>
+    <select id="queryPermissionAll" resultType="java.lang.String">
+        SELECT
+            pi.percode
+        FROM
+            permission_info pi
+        WHERE
+            pi.`status` = '00A'
+            AND type =1
+    </select>
+    <select id="queryMenuAll" resultType="com.gaby.sms.system.MenuInfo">
+        SELECT
+            pi.`name`,
+            pi.url,
+            pi.icon,
+            pi.parent_id,
+            pi.id
+        FROM
+            permission_info pi
+        WHERE
+            pi.`status` = '00A'
+            AND type =0
+    </select>
+</mapper>

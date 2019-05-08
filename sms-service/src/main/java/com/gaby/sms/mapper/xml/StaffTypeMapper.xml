@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gaby.sms.mapper.dao.StaffTypeDao">
+
+    <select id="list" resultType="com.gaby.sms.model.staff.list.Item">
+        SELECT
+            sti.id,
+            sti.`name`
+        FROM
+            staff_type_info sti
+        WHERE
+            sti.`status`='00A'
+            <if test="request.keyword!=null and request.keyword!=''">
+                AND sti.`name` LIKE CONCAT('%',REPLACE(trim(#{request.keyword}),' ','%'),'%')
+            </if>
+    </select>
+    <select id="query_s" resultType="java.lang.Long">
+        SELECT
+            usi.type
+        FROM
+            user_staff_info usi
+        WHERE
+            usi.`status` = '00A'
+            AND usi.user_id = #{id}
+    </select>
+    <select id="selectStaffTypeInfoByExceptSelf" resultType="com.gaby.mybatis.auto.stu.entity.StaffTypeInfo">
+        SELECT
+            sti.id
+        FROM
+            staff_type_info sti
+        WHERE
+            sti.`status` = '00A'
+            AND sti.`name` = #{name}
+            AND sti.id != #{id}
+    </select>
+</mapper>

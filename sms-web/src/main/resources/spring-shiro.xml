@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context-3.1.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+
+
+
+    <!-- 开启aop，对类代理 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager" />
+        <!-- loginUrl认证提交地址，如果没有认证将会请求此地址进行认证，请求此地址将由formAuthenticationFilter进行表单认证 -->
+        <property name="loginUrl" value="/sms/auth" />
+        <!-- 通过unauthorizedUrl指定没有权限操作时跳转页面-->
+        <property name="unauthorizedUrl" value="/index.jsp" />
+        <!-- 自定义filter配置 -->
+        <property name="filters">
+            <map>
+                <!-- 将自定义 的FormAuthenticationFilter注入shiroFilter中-->
+                <entry key="authc" value-ref="formAuthenticationFilter" />
+                <entry key="logout" value-ref="logoutFilter" />
+            </map>
+        </property>
+
+        <!-- 过虑器链定义，从上向下顺序执行，一般将/**放在最下边 -->
+        <property name="filterChainDefinitions">
+            <value>
+                /logout=logout
+                <!-- 对静态资源设置匿名访问 -->
+                /images/** = anon
+                /js/** = anon
+                /styles/** = anon
+                /assets/** =anon
+                /sms/** = authc
+            </value>
+        </property>
+    </bean>
+
+    <!-- securityManager安全管理器 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!--自定义realm-->
+        <property name="realm" ref="securityRealm" />
+        <!--自定义的缓存管理器-->
+        <property name="cacheManager" ref="ehCacheManager"/>
+        <!--会话管理器-->
+        <property name="sessionManager" ref="sessionManager"></property>
+    </bean>
+
+
+    <!--自定义realm-->
+    <bean id="securityRealm" class="com.gaby.sms.realm.CustomRealm"></bean>
+
+    <!--缓存管理器-->
+    <bean id="ehCacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:spring-shiro-ehcache.xml"/>
+    </bean>
+
+    <!--缓存管理器-->
+    <bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+        <property name="globalSessionTimeout" value="600000"/>
+        <property name="deleteInvalidSessions" value="true"/>
+        <property name="sessionIdCookie" ref="shiroCookieTemplate"/>
+    </bean>
+    <!--cookie模版-->
+    <bean id="shiroCookieTemplate" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <property name="name" value="${shiro.session.name}"/>
+        <property name="path" value="${shiro.session.path}"/>
+        <property name="domain" value="${shiro.session.domain}"/>
+    </bean>
+
+    <!--自定义表单认证过滤器-->
+    <bean id="formAuthenticationFilter" class="com.gaby.sms.filter.MyFormAuthenticationFilter">
+        <property name="usernameParam" value="account"/>
+        <property name="passwordParam" value="pwd"/>
+    </bean>
+    <!--自定义退出过滤器-->
+    <bean id="logoutFilter" class="org.apache.shiro.web.filter.authc.LogoutFilter">
+        <property name="redirectUrl" value="/login.html"></property>
+    </bean>
+</beans>
